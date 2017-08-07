@@ -1,0 +1,198 @@
+---
+title: "Assignment_1"
+author: "Aya Abdelmonem"
+output: html_document
+---
+
+
+## Welcome to Reproducable Research Assignment_1
+
+Here we are reading file into R  and store data into new variable.
+
+```{R echo=TRUE}
+
+Activity_data <- read.csv("C:/Users/dell/Desktop/myDataScienceWork/reproducable research/Reproducable_research_assignment_1/RepData_PeerAssessment1/activity/activity.csv")
+
+```
+
+We can take a look about these data and collect basic information about it .
+```{R echo=TRUE}
+summary(Activity_data)
+```
+
+We can determine  the first six rows in the dataset.
+```{R echo=TRUE}
+head(Activity_data)
+```
+
+
+
+
+To count the steps per day in Activity dataset
+
+```{R echo= TRUE}
+steps_per_day <- aggregate(steps ~ date, data = Activity_data, sum, na.rm = TRUE)
+```
+
+To plot the  total steps per day
+
+```{R echo = TRUE}
+hist(steps_per_day$steps, main = "Total steps per day", col = "blue")
+```
+
+Mean value of total steps per day is :
+
+```{R echo = TRUE}
+mean(steps_per_day$steps)
+```
+
+Median value of total steps per day is :
+
+```{R echo = TRUE}
+median(steps_per_day$steps)
+```
+
+To get the average of daily activity pattern ,
+
+Make a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis)
+
+```{R echo = TRUE}
+avg_steps_time_series <- tapply(Activity_data$steps, Activity_data$interval, mean, na.rm = TRUE)
+```
+
+Plotting time series for daily activity pattern
+```{R echo = TRUE}
+plot(row.names(avg_steps_time_series), avg_steps_time_series, type = "l", main = "Average number of steps taken across all days")
+```
+
+We can determine the maximum number of steps of daily activity pattern :
+
+```{R echo=TRUE}
+which.max(avg_steps_time_series)
+```
+
+
+To Impute missing values, we collect the total numebr of NA'S in dataset rows
+
+```{R echo = TRUE}
+
+missing_values <- sum(is.na(Activity_data))
+missing_values
+```
+
+
+This is a strategy to fill all the missing values in the dataset
+create a new dataset 
+```{R echo= TRUE}
+Activity_data2 <- Activity_data
+```
+
+```{R echo = TRUE}
+
+StepsAverage <- aggregate(steps ~ interval, data = Activity_data, FUN = mean)
+
+fillNA <- numeric()
+
+for (i in 1:nrow(Activity_data)) {
+  
+    obs <- Activity_data[i, ]
+    
+    if (is.na(obs$steps)) {
+      
+        steps <- subset(StepsAverage, interval == obs$interval)$steps
+        
+    }
+    
+    else 
+      {
+    
+        steps <- obs$steps
+      }
+    
+    fillNA <- c(fillNA, steps)
+}
+
+
+```
+
+And now ! we will fill the missing data in the new data set :
+
+```{R echo = TRUE}
+Activity_data2$steps <- fillNA
+```
+
+Then we will calculate the total number of steps per day but with the new dataset calles activity_data2 which missing values filled in .
+
+```{R echo = TRUE}
+steps_per_day2 <- aggregate(steps ~ date, data = Activity_data2, sum, na.rm = TRUE)
+
+```
+
+plotting the total numebr of steps per day with the new data set 
+
+```{R echo = TRUE}
+
+hist(steps_per_day2$steps, main = "Total steps by day")
+
+```
+
+The mean of steps per day for the new dataset is :
+
+```{R echo = TRUE}
+
+mean(steps_per_day2$steps)
+
+```
+
+The median of steps per day for the new dataset is :
+
+```{R echo = TRUE}
+median(steps_per_day2$steps)
+
+```
+
+This final plot will shows the Activity patterns in weekdays and weekends .
+First we will determine the days wheather at the weekend or weekdays.
+
+```{R echo = TRUE}
+
+
+library(lattice)
+
+Sys.setlocale("LC_ALL","English")
+dates<- as.Date(Activity_data$date)
+days<-weekdays(dates)
+Day_Identifier <- vector()
+
+for (i in 1:nrow(Activity_data)) {
+  
+    if (days[i] == "Saturday")
+      {
+      
+        Day_Identifier[i] <-"Weekend"
+      }
+  
+  else if (days[i] == "Sunday")
+    {
+    
+        Day_Identifier[i] <- "Weekend"
+    }
+  
+  else
+    
+    {
+    
+        Day_Identifier[i] <- "Weekday"
+    }
+}
+Activity_data$Day_Identifier <- Day_Identifier
+Activity_data$Day_Identifier<- factor(Activity_data$Day_Identifier)
+
+days_steps_identifiers <- aggregate(steps ~ interval + Day_Identifier, data = Activity_data, mean)
+names(days_steps_identifiers) <- c("interval", "Day_Identifier", "steps")
+
+xyplot(steps ~ interval | Day_Identifier, days_steps_identifiers, type = "l", layout = c(1, 2), 
+    xlab = "Interval", ylab = "Number of steps")
+
+```
+
