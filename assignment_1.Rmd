@@ -1,7 +1,8 @@
 ---
 title: "Assignment_1"
 author: "Aya Abdelmonem"
-output: html_document
+output:  github_document
+
 ---
 
 
