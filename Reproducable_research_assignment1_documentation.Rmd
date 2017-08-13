@@ -1,16 +1,14 @@
 ---
-title: "Assignment_1"
+title: "Reproducable_research_assignment_1"
 author: "Aya Abdelmonem"
+date: "6 √€”ÿ”° 2017"
 output: html_document
 ---
-
-
-## Welcome to Reproducable Research Assignment_1
+# Welcome to Reproducable Research Assignment_1
 
 Here we are reading file into R  and store data into new variable.
 
 ```{R echo=TRUE}
-
 Activity_data <- read.csv("C:/Users/dell/Desktop/myDataScienceWork/reproducable research/Reproducable_research_assignment_1/RepData_PeerAssessment1/activity/activity.csv")
 
 ```
@@ -24,6 +22,7 @@ We can determine  the first six rows in the dataset.
 ```{R echo=TRUE}
 head(Activity_data)
 ```
+
 
 
 
@@ -154,44 +153,34 @@ This final plot will shows the Activity patterns in weekdays and weekends .
 First we will determine the days wheather at the weekend or weekdays.
 
 ```{R echo = TRUE}
-
-
+library(magrittr)
+library(dplyr)
+library(ggplot2)
 library(lattice)
-
-Sys.setlocale("LC_ALL","English")
 dates<- as.Date(Activity_data$date)
 days<-weekdays(dates)
-Day_Identifier <- vector()
 
-for (i in 1:nrow(Activity_data)) {
-  
-    if (days[i] == "Saturday")
-      {
-      
-        Day_Identifier[i] <-"Weekend"
-      }
-  
-  else if (days[i] == "Sunday")
-    {
-    
-        Day_Identifier[i] <- "Weekend"
-    }
-  
-  else
-    
-    {
-    
-        Day_Identifier[i] <- "Weekday"
-    }
-}
-Activity_data$Day_Identifier <- Day_Identifier
-Activity_data$Day_Identifier<- factor(Activity_data$Day_Identifier)
+days<-ifelse(grepl("Saturday", days), "Weekend", days)
+days<-ifelse(grepl("Sunday", days), "Weekend", days)
+days<-ifelse(grepl("Monday", days), "Weekday", days)
+days<-ifelse(grepl("Tuesday", days), "Weekday", days)
+days<-ifelse(grepl("Wednesday", days), "Weekday", days)
+days<-ifelse(grepl("Thursday", days), "Weekday", days)
+days<-ifelse(grepl("Friday", days), "Weekday", days)
+days<- as.factor(days)
+Activity_data<-cbind(Activity_data,days)
 
-days_steps_identifiers <- aggregate(steps ~ interval + Day_Identifier, data = Activity_data, mean)
-names(days_steps_identifiers) <- c("interval", "Day_Identifier", "steps")
 
-xyplot(steps ~ interval | Day_Identifier, days_steps_identifiers, type = "l", layout = c(1, 2), 
+intbydaytype <- Activity_data %>% group_by(interval, days) %>% summarise(steps = mean(steps))
+xyplot(steps ~ interval | days, intbydaytype , type = "l", layout = c(1, 2), 
     xlab = "Interval", ylab = "Number of steps")
 
+
+
+                                                                                                
+
 ```
+
+
+
 
